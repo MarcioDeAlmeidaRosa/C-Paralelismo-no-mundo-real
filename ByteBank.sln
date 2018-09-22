@@ -7,6 +7,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ByteBank.View", "ByteBank.V
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ByteBank.Core", "ByteBank.Core\ByteBank.Core.csproj", "{3B254A19-C3FD-4246-B319-987933185190}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ExemplosParalelos", "ExemplosParalelos\ExemplosParalelos.csproj", "{F257D1AF-3B5E-4CD3-98A2-48BD698799CA}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,8 +23,15 @@ Global
 		{3B254A19-C3FD-4246-B319-987933185190}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{3B254A19-C3FD-4246-B319-987933185190}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{3B254A19-C3FD-4246-B319-987933185190}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F257D1AF-3B5E-4CD3-98A2-48BD698799CA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F257D1AF-3B5E-4CD3-98A2-48BD698799CA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F257D1AF-3B5E-4CD3-98A2-48BD698799CA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F257D1AF-3B5E-4CD3-98A2-48BD698799CA}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {FFACB837-1CFE-454B-8900-AF13F3C968D0}
 	EndGlobalSection
 EndGlobal
