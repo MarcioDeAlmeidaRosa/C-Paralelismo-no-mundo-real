@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Linq;
 using System.Windows;
+using System.Threading;
 using ByteBank.Core.Model;
-using ByteBank.View.Utils;
 using ByteBank.Core.Service;
 using System.Threading.Tasks;
 using ByteBank.Core.Repository;
@@ -14,6 +14,7 @@ namespace ByteBank.View
     {
         private readonly ContaClienteRepository r_Repositorio;
         private readonly ContaClienteService r_Servico;
+        private CancellationTokenSource _cts;
 
         public MainWindow()
         {
@@ -21,7 +22,6 @@ namespace ByteBank.View
 
             r_Repositorio = new ContaClienteRepository();
             r_Servico = new ContaClienteService();
-            BtnCancelar.IsEnabled = false;
         }
 
         private void LimparView()
@@ -153,6 +153,7 @@ namespace ByteBank.View
             //                  acessar os objetos da Thread principal, assim nao será lançado exception 
             //                  (System.InvalidOperationException "O segmento de chamada não pode acessar esse objeto porque um segmento diferente é proprietário dele.")
             var threadprincipal = TaskScheduler.FromCurrentSynchronizationContext();
+            CriarNovoTokenCancelamento();
 
             IList<string> resultado = new List<string>();
 
@@ -162,9 +163,20 @@ namespace ByteBank.View
 
             var progressDOTNet = new Progress<string>(str => { pgsProgresso.Value += 1; });
             //var progress = new ByteBankProgress<string>(str => pgsProgresso.Value += 1);
-
-            ConsolidarContas(r_Repositorio.GetContaClientes(), progressDOTNet).ContinueWith(t =>
+            ConsolidarContas(r_Repositorio.GetContaClientes(), progressDOTNet, _cts.Token).ContinueWith(t =>
             {
+                if (t.Status == TaskStatus.Canceled)
+                {
+                    BtnProcessar.IsEnabled = true;
+                    BtnProcessar1.IsEnabled = true;
+                    BtnProcessar2.IsEnabled = true;
+                    BtnProcessar3.IsEnabled = true;
+                    BtnProcessar1.Content = textoInicial;
+                    TxtTempo.Text = "Operação cancelada pelo usuário";
+                    BtnCancelar.IsEnabled = false;
+                    return;
+                }
+
                 resultado = t.Result;
                 var fim = DateTime.Now;
                 AtualizarView(resultado, fim - inicio);
@@ -174,12 +186,14 @@ namespace ByteBank.View
                 BtnProcessar2.IsEnabled = true;
                 BtnProcessar3.IsEnabled = true;
                 BtnProcessar1.Content = textoInicial;
+
             }, threadprincipal);
         }
 
         private async void BtnProcessar_Click_Com_AsyncAwait(object sender, RoutedEventArgs e)
         {
             var threadprincipal = TaskScheduler.FromCurrentSynchronizationContext();
+            CriarNovoTokenCancelamento();
 
             BtnProcessar.IsEnabled = false;
             BtnProcessar1.IsEnabled = false;
@@ -196,27 +210,52 @@ namespace ByteBank.View
 
             var progressDOTNet = new Progress<string>(str => { pgsProgresso.Value += 1; });
             //var progress = new ByteBankProgress<string>(str => pgsProgresso.Value += 1);
-
-            resultado = await ConsolidarContas(r_Repositorio.GetContaClientes(), progressDOTNet);
-
-            var fim = DateTime.Now;
-            AtualizarView(resultado, fim - inicio);
-            BtnProcessar.IsEnabled = true;
-            BtnProcessar1.IsEnabled = true;
-            BtnProcessar2.IsEnabled = true;
-            BtnProcessar3.IsEnabled = true;
-            BtnProcessar3.Content = textoInicial;
+            try
+            {
+                resultado = await ConsolidarContas(r_Repositorio.GetContaClientes(), progressDOTNet, _cts.Token);
+                var fim = DateTime.Now;
+                AtualizarView(resultado, fim - inicio);
+            }
+            catch (OperationCanceledException)
+            {
+                TxtTempo.Text = "Operação cancelada pelo usuário";
+            }
+            finally
+            {
+                BtnProcessar.IsEnabled = true;
+                BtnProcessar1.IsEnabled = true;
+                BtnProcessar2.IsEnabled = true;
+                BtnProcessar3.IsEnabled = true;
+                BtnProcessar3.Content = textoInicial;
+                BtnCancelar.IsEnabled = false;
+            }
         }
 
-        private async Task<IList<string>> ConsolidarContas(IEnumerable<ContaCliente> contas, IProgress<string> reportadorDeProgresso)
+        private async Task<IList<string>> ConsolidarContas(IEnumerable<ContaCliente> contas, IProgress<string> reportadorDeProgresso, CancellationToken cancellationToken)
         {
             pgsProgresso.Maximum = contas.Count();
             return await Task.WhenAll(contas.Select(conta => Task.Factory.StartNew(() =>
-            {
-                var ret = r_Servico.ConsolidarMovimentacao(conta);
-                reportadorDeProgresso.Report(ret);
-                return ret;
-            })));
+             {
+                 //Podemos fazer a checagem manualmente para um possível rollback
+                 //if (cancellationToken.IsCancellationRequested)
+                 //    throw new OperationCanceledException(cancellationToken);
+
+                 //Se não quisermos fazer um rollback ou tratativa do cancelamento
+                 //podemos chamar direto esse método que faz a checagem
+                 //sendo solicitado cancelamento, ele próprio lança OperationCanceledException
+                 cancellationToken.ThrowIfCancellationRequested();
+
+                 var ret = r_Servico.ConsolidarMovimentacao(conta);
+                 reportadorDeProgresso.Report(ret);
+
+                 //if (cancellationToken.IsCancellationRequested)
+                 //    throw new OperationCanceledException(cancellationToken);
+
+                 cancellationToken.ThrowIfCancellationRequested();
+
+                 return ret;
+             }, cancellationToken)
+            ));
         }
 
         private void AtualizarView(IList<string> result, TimeSpan elapsedTime)
@@ -229,9 +268,15 @@ namespace ByteBank.View
             BtnCancelar.IsEnabled = false;
         }
 
-        private void BtnProcessar_Click_Cancelar_Processamento(object sender, RoutedEventArgs e)
+        private void CriarNovoTokenCancelamento()
         {
+            _cts = new CancellationTokenSource();
+        }
 
+        private void BtnCancelar_Click(object sender, RoutedEventArgs e)
+        {
+            BtnCancelar.IsEnabled = false;
+            _cts.Cancel();
         }
     }
 }

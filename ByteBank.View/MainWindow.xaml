@@ -54,8 +54,9 @@
             <Button Name="BtnCancelar"
                 Padding="10"
                 Grid.Row="4"
-                Click="BtnProcessar_Click_Cancelar_Processamento">
-                Cancelar Processo
+                IsEnabled="False"
+                Click="BtnCancelar_Click">
+                Cancelar Processamento
             </Button>
         </Grid>
 
