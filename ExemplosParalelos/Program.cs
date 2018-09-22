@@ -20,12 +20,26 @@ namespace ExemplosParalelos
             LoopComTask();
 
 
-
             Console.WriteLine("Aperte qualquer tecla para ir para ao próximo exmplo.");
             Console.ReadLine();
             //Testando InvalidOperationException, pois há a tentativa de se acessar um objeto da Thread da interface gráfica a partir de outra Thread
             Console.WriteLine("Testando InvalidOperationException, pois há a tentativa de se acessar um objeto da Thread da interface gráfica a partir de outra Thread");
             LancandoException();
+
+
+            Console.WriteLine("Aperte qualquer tecla para ir para ao próximo exmplo.");
+            Console.ReadLine();
+            //Testando InvalidOperationException, pois há a tentativa de se acessar um objeto da Thread da interface gráfica a partir de outra Thread
+            Console.WriteLine("Novamente testando InvalidOperationException, pois há a tentativa de se acessar um objeto da Thread da interface gráfica a partir de outra Thread");
+            OutroExercicio();
+
+
+            Console.WriteLine("Aperte qualquer tecla para ir para ao próximo exmplo.");
+            Console.ReadLine();
+            //Testando InvalidOperationException, pois há a tentativa de se acessar um objeto da Thread da interface gráfica a partir de outra Thread
+            Console.WriteLine("Testando Retorno de tarefas");
+            TestaRetornoTarefa();
+
 
             Console.ReadLine();
         }
@@ -104,6 +118,20 @@ namespace ExemplosParalelos
         private static void CalculaRaiz(int value)
         {
             Console.Write($"Executando --> CalculaRaiz - {value}");
+        }
+
+        static object TestaRetornoTarefa()
+        {
+            //O retorno CalculaRaiz2 sera Task<double>, pois é, de fato, o tipo retornado por CalculaRaiz2 e na atribuição não há o uso da palavra chave await
+            //Como não foi feito uso da palavra chave await na atribuição da variável A, o compilador não interpreta que estamos 
+            //interessados no valor de retorno da tarefa e sim no tipo Task<double>
+            var A = CalculaRaiz2(100);
+            return null;
+        }
+
+        private static async Task<double> CalculaRaiz2(double num)
+        {
+            return await Task.Run(() => Math.Sqrt(num));
         }
     }
 }
