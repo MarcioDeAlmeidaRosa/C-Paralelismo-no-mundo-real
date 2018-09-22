@@ -6,6 +6,7 @@ using ByteBank.Core.Service;
 using System.Threading.Tasks;
 using ByteBank.Core.Repository;
 using System.Collections.Generic;
+using System.Threading;
 
 namespace ByteBank.View
 {
@@ -22,6 +23,13 @@ namespace ByteBank.View
             r_Servico = new ContaClienteService();
         }
 
+        private void LimparView()
+        {
+            LstResultados.ItemsSource = null;
+            TxtTempo.Text = null;
+            pgsProgresso.Value = 0;
+        }
+
         private void BtnProcessar_Click_Bloqueando(object sender, RoutedEventArgs e)
         {
             BtnProcessar.IsEnabled = false;
@@ -35,7 +43,7 @@ namespace ByteBank.View
 
             var resultado = new List<string>();
 
-            AtualizarView(new List<string>(), TimeSpan.Zero);
+            LimparView();
 
             var inicio = DateTime.Now;
 
@@ -82,7 +90,7 @@ namespace ByteBank.View
 
             var resultado = new List<string>();
 
-            AtualizarView(new List<string>(), TimeSpan.Zero);
+            LimparView();
 
             var inicio = DateTime.Now;
 
@@ -146,7 +154,7 @@ namespace ByteBank.View
 
             IList<string> resultado = new List<string>();
 
-            AtualizarView(new List<string>(), TimeSpan.Zero);
+            LimparView();
 
             var inicio = DateTime.Now;
 
@@ -166,6 +174,8 @@ namespace ByteBank.View
 
         private async void BtnProcessar_Click_Com_AsyncAwait(object sender, RoutedEventArgs e)
         {
+            var threadprincipal = TaskScheduler.FromCurrentSynchronizationContext();
+
             BtnProcessar.IsEnabled = false;
             BtnProcessar1.IsEnabled = false;
             BtnProcessar2.IsEnabled = false;
@@ -175,7 +185,7 @@ namespace ByteBank.View
 
             IList<string> resultado = new List<string>();
 
-            AtualizarView(new List<string>(), TimeSpan.Zero);
+            LimparView();
 
             var inicio = DateTime.Now;
 
@@ -192,10 +202,20 @@ namespace ByteBank.View
 
         private async Task<IList<string>> ConsolidarContas(IEnumerable<ContaCliente> contas)
         {
-            return await Task.WhenAll(contas.Select(conta => Task.Factory.StartNew(() => r_Servico.ConsolidarMovimentacao(conta))));
+            pgsProgresso.Maximum = contas.Count();
+            var threadprincipal = TaskScheduler.FromCurrentSynchronizationContext();
+            return await Task.WhenAll(contas.Select(conta => Task.Factory.StartNew(() =>
+            {
+                var ret = r_Servico.ConsolidarMovimentacao(conta);
+                Task.Factory.StartNew(() =>
+                {
+                    pgsProgresso.Value += 1;
+                }, CancellationToken.None, TaskCreationOptions.None, threadprincipal);
+                return ret;
+            })));
         }
 
-        private void AtualizarView(IList<String> result, TimeSpan elapsedTime)
+        private void AtualizarView(IList<string> result, TimeSpan elapsedTime)
         {
             var tempoDecorrido = $"{ elapsedTime.Seconds }.{ elapsedTime.Milliseconds} segundos!";
             var mensagem = $"Processamento de {result.Count} clientes em {tempoDecorrido}";
