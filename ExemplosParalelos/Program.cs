@@ -19,6 +19,14 @@ namespace ExemplosParalelos
             //das Threads disponíveis para o TaskScheduler default usado pela Task.Factory, que possui uma inteligência
             LoopComTask();
 
+
+
+            Console.WriteLine("Aperte qualquer tecla para ir para ao próximo exmplo.");
+            Console.ReadLine();
+            //Testando InvalidOperationException, pois há a tentativa de se acessar um objeto da Thread da interface gráfica a partir de outra Thread
+            Console.WriteLine("Testando InvalidOperationException, pois há a tentativa de se acessar um objeto da Thread da interface gráfica a partir de outra Thread");
+            LancandoException();
+
             Console.ReadLine();
         }
 
@@ -53,5 +61,22 @@ namespace ExemplosParalelos
             Console.WriteLine("");
         }
 
+        static void LancandoException()
+        {
+            try
+            {
+                System.Windows.Controls.Button btnOk = new System.Windows.Controls.Button();
+                new TaskFactory().StartNew(() => ExecutarProcessamento()).ContinueWith((task) => btnOk.IsEnabled = true);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Exercício 06 Problemas ao acessar a interface gráfica da forma errada --> ({ex.ToString()})");
+            }
+        }
+
+        private static void ExecutarProcessamento()
+        {
+
+        }
     }
 }
