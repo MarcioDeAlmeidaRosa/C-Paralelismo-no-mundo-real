@@ -21,9 +21,16 @@ namespace ByteBank.View
             r_Repositorio = new ContaClienteRepository();
             r_Servico = new ContaClienteService();
         }
-        
+
         private void BtnProcessar_Click_Bloqueando(object sender, RoutedEventArgs e)
         {
+            BtnProcessar.IsEnabled = false;
+            BtnProcessar1.IsEnabled = false;
+            BtnProcessar2.IsEnabled = false;
+            BtnProcessar3.IsEnabled = false;
+            var textoInicial = BtnProcessar2.Content;
+            BtnProcessar2.Content = "Processando...";
+
             var contas = r_Repositorio.GetContaClientes();
 
             var resultado = new List<string>();
@@ -41,6 +48,12 @@ namespace ByteBank.View
             var fim = DateTime.Now;
 
             AtualizarView(resultado, fim - inicio);
+
+            BtnProcessar.IsEnabled = true;
+            BtnProcessar1.IsEnabled = true;
+            BtnProcessar2.IsEnabled = true;
+            BtnProcessar3.IsEnabled = true;
+            BtnProcessar2.Content = textoInicial;
         }
 
         private void BtnProcessar_Click_Forma_Complicada(object sender, RoutedEventArgs e)
@@ -51,6 +64,8 @@ namespace ByteBank.View
             //                  processamento excessivo da CPU/Memória
             BtnProcessar.IsEnabled = false;
             BtnProcessar1.IsEnabled = false;
+            BtnProcessar2.IsEnabled = false;
+            BtnProcessar3.IsEnabled = false;
             var textoInicial = BtnProcessar.Content;
             BtnProcessar.Content = "Processando...";
 
@@ -101,6 +116,8 @@ namespace ByteBank.View
                 //Como bloqueamos o acionamento do botão após clicado, precisamos libera-lo novamente após o termino da execução da sua finalidade
                 BtnProcessar.IsEnabled = true;
                 BtnProcessar1.IsEnabled = true;
+                BtnProcessar2.IsEnabled = true;
+                BtnProcessar3.IsEnabled = true;
                 BtnProcessar.Content = textoInicial;
             }, threadprincipal);
         }
@@ -114,7 +131,8 @@ namespace ByteBank.View
             BtnProcessar.IsEnabled = false;
             BtnProcessar1.IsEnabled = false;
             BtnProcessar2.IsEnabled = false;
-            var textoInicial = BtnProcessar.Content;
+            BtnProcessar3.IsEnabled = false;
+            var textoInicial = BtnProcessar1.Content;
             BtnProcessar1.Content = "Processando...";
 
             //TaskScheduler --> Responsável por delegar atividade para cada núcleo da máquina que possa trabalhar na atividade do momento
@@ -141,8 +159,35 @@ namespace ByteBank.View
                 BtnProcessar.IsEnabled = true;
                 BtnProcessar1.IsEnabled = true;
                 BtnProcessar2.IsEnabled = true;
+                BtnProcessar3.IsEnabled = true;
                 BtnProcessar1.Content = textoInicial;
             }, threadprincipal);
+        }
+
+        private async void BtnProcessar_Click_Com_AsyncAwait(object sender, RoutedEventArgs e)
+        {
+            BtnProcessar.IsEnabled = false;
+            BtnProcessar1.IsEnabled = false;
+            BtnProcessar2.IsEnabled = false;
+            BtnProcessar3.IsEnabled = false;
+            var textoInicial = BtnProcessar3.Content;
+            BtnProcessar3.Content = "Processando...";
+
+            IList<string> resultado = new List<string>();
+
+            AtualizarView(new List<string>(), TimeSpan.Zero);
+
+            var inicio = DateTime.Now;
+
+            resultado = await ConsolidarContas(r_Repositorio.GetContaClientes());
+
+            var fim = DateTime.Now;
+            AtualizarView(resultado, fim - inicio);
+            BtnProcessar.IsEnabled = true;
+            BtnProcessar1.IsEnabled = true;
+            BtnProcessar2.IsEnabled = true;
+            BtnProcessar3.IsEnabled = true;
+            BtnProcessar3.Content = textoInicial;
         }
 
         private Task<IList<string>> ConsolidarContas(IEnumerable<ContaCliente> contas)

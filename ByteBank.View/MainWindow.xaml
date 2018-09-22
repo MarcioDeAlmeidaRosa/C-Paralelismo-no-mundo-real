@@ -35,6 +35,12 @@
                 Click="BtnProcessar_Click_Forma_Um_Pouco_Mais_Simples">
             Botão que executada a rotina usando Threads com 1 "callback"
         </Button>
+        <Button Name="BtnProcessar3"
+                Padding="10"
+                DockPanel.Dock="Bottom"
+                Click="BtnProcessar_Click_Com_AsyncAwait">
+            Botão que executada a rotina usando AsyncAwait
+        </Button>
         
         <!-- Resultado -->
         <TextBlock DockPanel.Dock="Top">Resultado:</TextBlock>
