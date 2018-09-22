@@ -36,9 +36,14 @@ namespace ExemplosParalelos
 
             Console.WriteLine("Aperte qualquer tecla para ir para ao próximo exmplo.");
             Console.ReadLine();
-            //Testando InvalidOperationException, pois há a tentativa de se acessar um objeto da Thread da interface gráfica a partir de outra Thread
             Console.WriteLine("Testando Retorno de tarefas");
             TestaRetornoTarefa();
+
+
+            Console.WriteLine("Aperte qualquer tecla para ir para ao próximo exmplo.");
+            Console.ReadLine();
+            Console.WriteLine("O compilador e o Async/Await");
+            ExecutaQuaquer();
 
 
             Console.ReadLine();
@@ -132,6 +137,24 @@ namespace ExemplosParalelos
         private static async Task<double> CalculaRaiz2(double num)
         {
             return await Task.Run(() => Math.Sqrt(num));
+        }
+
+        static async void ExecutaQuaquer()
+        {
+            try
+            {
+                //O compilador reescreve o código de forma que a linha 2 seja executada em uma Task e a linha 3 seja executada de forma encadeada, mas no mesmo contexto da linha 1
+                //Esta é uma das grandes motivações do async/await. O contexto da linha 1 é preservado e mantido na execução da linha 3
+                System.Windows.Controls.Button btnCalcular = new System.Windows.Controls.Button();
+                btnCalcular.IsEnabled = false; //Linha 1
+                var A = await CalculaRaiz2(100);//Linha 2
+                btnCalcular.IsEnabled = true;//Linha 3
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Exercício 06 O compilador e o Async/Await --> ({ex.ToString()})");
+            }
+            
         }
     }
 }
