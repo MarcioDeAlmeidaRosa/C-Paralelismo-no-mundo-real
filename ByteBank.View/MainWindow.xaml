@@ -17,11 +17,23 @@
                    DockPanel.Dock="Bottom"
                    HorizontalAlignment="Right">
         </TextBlock>
+        <Button Name="BtnProcessar2"
+                Padding="10"
+                DockPanel.Dock="Bottom"
+                Click="BtnProcessar_Click_Bloqueando">
+            Botão que executada a rotina bloqueando a aplicação
+        </Button>
         <Button Name="BtnProcessar"
                 Padding="10"
                 DockPanel.Dock="Bottom"
-                Click="BtnProcessar_Click">
-            Fazer Processamento
+                Click="BtnProcessar_Click_Forma_Complicada">
+            Botão que executada a rotina usando Threads com muitos "callbacks"
+        </Button>
+        <Button Name="BtnProcessar1"
+                Padding="10"
+                DockPanel.Dock="Bottom"
+                Click="BtnProcessar_Click_Forma_Um_Pouco_Mais_Simples">
+            Botão que executada a rotina usando Threads com 1 "callback"
         </Button>
         
         <!-- Resultado -->

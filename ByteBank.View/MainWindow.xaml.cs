@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using System.Windows;
+using ByteBank.Core.Model;
 using ByteBank.Core.Service;
 using System.Threading.Tasks;
 using ByteBank.Core.Repository;
@@ -20,14 +21,36 @@ namespace ByteBank.View
             r_Repositorio = new ContaClienteRepository();
             r_Servico = new ContaClienteService();
         }
+        
+        private void BtnProcessar_Click_Bloqueando(object sender, RoutedEventArgs e)
+        {
+            var contas = r_Repositorio.GetContaClientes();
 
-        private void BtnProcessar_Click(object sender, RoutedEventArgs e)
+            var resultado = new List<string>();
+
+            AtualizarView(new List<string>(), TimeSpan.Zero);
+
+            var inicio = DateTime.Now;
+
+            foreach (var conta in contas)
+            {
+                var resultadoConta = r_Servico.ConsolidarMovimentacao(conta);
+                resultado.Add(resultadoConta);
+            }
+
+            var fim = DateTime.Now;
+
+            AtualizarView(resultado, fim - inicio);
+        }
+
+        private void BtnProcessar_Click_Forma_Complicada(object sender, RoutedEventArgs e)
         {
             //Quando trabalhamos com Thread em paralelo, precisamos tomar o cuidado de bloquear o acionamento do acionador da rotina, neste caso o botão,
             //                  pois diferente de usar SingleThread, a interface não firacá bloqueada aguardando o processamento, permitindo assim o usuário
             //                  clicar diversas vezes no botão acionador desta rotina, casusando assim processamentos desnecessários podendo até causar um 
             //                  processamento excessivo da CPU/Memória
             BtnProcessar.IsEnabled = false;
+            BtnProcessar1.IsEnabled = false;
             var textoInicial = BtnProcessar.Content;
             BtnProcessar.Content = "Processando...";
 
@@ -77,11 +100,63 @@ namespace ByteBank.View
             {
                 //Como bloqueamos o acionamento do botão após clicado, precisamos libera-lo novamente após o termino da execução da sua finalidade
                 BtnProcessar.IsEnabled = true;
+                BtnProcessar1.IsEnabled = true;
                 BtnProcessar.Content = textoInicial;
             }, threadprincipal);
         }
 
-        private void AtualizarView(List<String> result, TimeSpan elapsedTime)
+        private void BtnProcessar_Click_Forma_Um_Pouco_Mais_Simples(object sender, RoutedEventArgs e)
+        {
+            //Quando trabalhamos com Thread em paralelo, precisamos tomar o cuidado de bloquear o acionamento do acionador da rotina, neste caso o botão,
+            //                  pois diferente de usar SingleThread, a interface não firacá bloqueada aguardando o processamento, permitindo assim o usuário
+            //                  clicar diversas vezes no botão acionador desta rotina, casusando assim processamentos desnecessários podendo até causar um 
+            //                  processamento excessivo da CPU/Memória
+            BtnProcessar.IsEnabled = false;
+            BtnProcessar1.IsEnabled = false;
+            BtnProcessar2.IsEnabled = false;
+            var textoInicial = BtnProcessar.Content;
+            BtnProcessar1.Content = "Processando...";
+
+            //TaskScheduler --> Responsável por delegar atividade para cada núcleo da máquina que possa trabalhar na atividade do momento
+            //                  Existente em todas as Threads (Principal e demais criadas pela principal ou por suas filhas)
+            //TaskScheduler.FromCurrentSynchronizationContext --> método responsável por criar um (TaskScheduler) associado ao Thread corrente onde foi chamado.
+            //                  Este recurso serve para quando a execução das Threads filhas criadas por este processo retornarem, nós assamos este Contexto inicial
+            //                  para a continuação correta do código, assim, a continuação da nova Thread criada pelo término da execução das Threads filhas, possa 
+            //                  acessar os objetos da Thread principal, assim nao será lançado exception 
+            //                  (System.InvalidOperationException "O segmento de chamada não pode acessar esse objeto porque um segmento diferente é proprietário dele.")
+            var threadprincipal = TaskScheduler.FromCurrentSynchronizationContext();
+
+            IList<string> resultado = new List<string>();
+
+            AtualizarView(new List<string>(), TimeSpan.Zero);
+
+            var inicio = DateTime.Now;
+
+            ConsolidarContas(r_Repositorio.GetContaClientes()).ContinueWith(t =>
+            {
+                resultado = t.Result;
+                var fim = DateTime.Now;
+                AtualizarView(resultado, fim - inicio);
+                //Como bloqueamos o acionamento do botão após clicado, precisamos libera-lo novamente após o termino da execução da sua finalidade
+                BtnProcessar.IsEnabled = true;
+                BtnProcessar1.IsEnabled = true;
+                BtnProcessar2.IsEnabled = true;
+                BtnProcessar1.Content = textoInicial;
+            }, threadprincipal);
+        }
+
+        private Task<IList<string>> ConsolidarContas(IEnumerable<ContaCliente> contas)
+        {
+            IList<string> resultado = new List<string>();
+            var tasks = contas.Select(
+                conta => Task.Factory.StartNew(() =>
+                {
+                    resultado.Add(r_Servico.ConsolidarMovimentacao(conta));
+                })).ToArray();
+            return Task.WhenAll(tasks).ContinueWith(t => { return resultado; });
+        }
+
+        private void AtualizarView(IList<String> result, TimeSpan elapsedTime)
         {
             var tempoDecorrido = $"{ elapsedTime.Seconds }.{ elapsedTime.Milliseconds} segundos!";
             var mensagem = $"Processamento de {result.Count} clientes em {tempoDecorrido}";
