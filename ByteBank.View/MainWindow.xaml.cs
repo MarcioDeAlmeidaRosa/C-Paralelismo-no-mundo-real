@@ -42,7 +42,11 @@ namespace ByteBank.View
                     resultado.Add(r_Servico.ConsolidarMovimentacao(conta));
                 })).ToArray();
 
-            Task.WhenAll(contasTarefas).ContinueWith((task) =>
+            //Task.WhenAll -> Cria uma tarefa que ficará aguardando todas as tarefas passada para ela terminem, assim desbloqueia a execução da Thread (Task) onde foi chamada.
+            //                Retorna uma tarefa que representa a conclusão de todas as tarefas passada em sua chamada.
+            //Task.WhenAll.ContinueWith --> da continuação da execução do bloco quando todas as TASKs passada para (Task.WhenAll) termina.
+            //                Recebe um delegate com o código que depende da finalização das tarefas e continua sua execução.
+            Task.WhenAll(contasTarefas).ContinueWith(task =>
             {
                 var fim = DateTime.Now;
 
