@@ -1,21 +1,10 @@
-﻿using ByteBank.Core.Model;
-using ByteBank.Core.Repository;
-using ByteBank.Core.Service;
-using System;
-using System.Collections.Generic;
+﻿using System;
 using System.Linq;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
+using System.Threading;
+using ByteBank.Core.Service;
+using ByteBank.Core.Repository;
+using System.Collections.Generic;
 
 namespace ByteBank.View
 {
@@ -36,17 +25,41 @@ namespace ByteBank.View
         {
             var contas = r_Repositorio.GetContaClientes();
 
+            var contas_parte1 = contas.Take(contas.Count() / 2);//Recupera a metade da lista
+            var contas_parte2 = contas.Skip(contas.Count() / 2);//Pula uma quantidade de registro da lista e retorna o restante
+
             var resultado = new List<string>();
 
             AtualizarView(new List<string>(), TimeSpan.Zero);
 
             var inicio = DateTime.Now;
 
-            foreach (var conta in contas)
+            Thread thread_parte_1 = new Thread(() =>
             {
-                var resultadoConta = r_Servico.ConsolidarMovimentacao(conta);
-                resultado.Add(resultadoConta);
+                foreach (var conta in contas_parte1)
+                {
+                    var resultadoConta = r_Servico.ConsolidarMovimentacao(conta);
+                    resultado.Add(resultadoConta);
+                }
+            });
+
+            Thread thread_parte_2 = new Thread(() =>
+            {
+                foreach (var conta in contas_parte2)
+                {
+                    var resultadoConta = r_Servico.ConsolidarMovimentacao(conta);
+                    resultado.Add(resultadoConta);
+                }
+            });
+
+            thread_parte_1.Start();
+            thread_parte_2.Start();
+
+            while (thread_parte_1.IsAlive || thread_parte_2.IsAlive)
+            {
+                Thread.Sleep(250);
             }
+
 
             var fim = DateTime.Now;
 
