@@ -2,11 +2,11 @@
 using System.Linq;
 using System.Windows;
 using ByteBank.Core.Model;
+using ByteBank.View.Utils;
 using ByteBank.Core.Service;
 using System.Threading.Tasks;
 using ByteBank.Core.Repository;
 using System.Collections.Generic;
-using System.Threading;
 
 namespace ByteBank.View
 {
@@ -158,7 +158,9 @@ namespace ByteBank.View
 
             var inicio = DateTime.Now;
 
-            ConsolidarContas(r_Repositorio.GetContaClientes()).ContinueWith(t =>
+            var progress = new ByteBankProgress<string>(str => pgsProgresso.Value += 1);
+
+            ConsolidarContas(r_Repositorio.GetContaClientes(), progress).ContinueWith(t =>
             {
                 resultado = t.Result;
                 var fim = DateTime.Now;
@@ -189,7 +191,9 @@ namespace ByteBank.View
 
             var inicio = DateTime.Now;
 
-            resultado = await ConsolidarContas(r_Repositorio.GetContaClientes());
+            var progress = new ByteBankProgress<string>(str => pgsProgresso.Value += 1);
+
+            resultado = await ConsolidarContas(r_Repositorio.GetContaClientes(), progress);
 
             var fim = DateTime.Now;
             AtualizarView(resultado, fim - inicio);
@@ -200,17 +204,13 @@ namespace ByteBank.View
             BtnProcessar3.Content = textoInicial;
         }
 
-        private async Task<IList<string>> ConsolidarContas(IEnumerable<ContaCliente> contas)
+        private async Task<IList<string>> ConsolidarContas(IEnumerable<ContaCliente> contas, IProgress<string> reportadorDeProgresso)
         {
             pgsProgresso.Maximum = contas.Count();
-            var threadprincipal = TaskScheduler.FromCurrentSynchronizationContext();
             return await Task.WhenAll(contas.Select(conta => Task.Factory.StartNew(() =>
             {
                 var ret = r_Servico.ConsolidarMovimentacao(conta);
-                Task.Factory.StartNew(() =>
-                {
-                    pgsProgresso.Value += 1;
-                }, CancellationToken.None, TaskCreationOptions.None, threadprincipal);
+                reportadorDeProgresso.Report(ret);
                 return ret;
             })));
         }
