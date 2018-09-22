@@ -1,19 +1,28 @@
 ﻿using ByteBank.Core.Model;
 using System;
+using System.Threading;
 
 namespace ByteBank.Core.Service
 {
     public class ContaClienteService
     {
-        public string ConsolidarMovimentacao(ContaCliente conta)
+        public string ConsolidarMovimentacao(ContaCliente conta, CancellationToken cancellationToken)
         {
+            cancellationToken.ThrowIfCancellationRequested();
             var soma = 0m;
-
             foreach (var movimento in conta.Movimentacoes)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
                 soma += movimento.Valor * FatorDeMultiplicacao(movimento.Data);
-
+            }
+            cancellationToken.ThrowIfCancellationRequested();
             AtualizarInvestimentos(conta);
             return $"Cliente {conta.NomeCliente} tem saldo atualizado de R${soma.ToString("#00.00")}";
+        }
+
+        public string ConsolidarMovimentacao(ContaCliente conta)
+        {
+            return ConsolidarMovimentacao(conta, CancellationToken.None);
         }
 
         private static decimal FatorDeMultiplicacao(DateTime dataMovimento)
@@ -28,6 +37,7 @@ namespace ByteBank.Core.Service
 
             return resultado;
         }
+
         private static void AtualizarInvestimentos(ContaCliente cliente)
         {
             const decimal CTE_BONIFICACAO_MOV = 1m / (10m * 5m);

@@ -245,7 +245,7 @@ namespace ByteBank.View
                  //sendo solicitado cancelamento, ele próprio lança OperationCanceledException
                  cancellationToken.ThrowIfCancellationRequested();
 
-                 var ret = r_Servico.ConsolidarMovimentacao(conta);
+                 var ret = r_Servico.ConsolidarMovimentacao(conta, cancellationToken);
                  reportadorDeProgresso.Report(ret);
 
                  //if (cancellationToken.IsCancellationRequested)
