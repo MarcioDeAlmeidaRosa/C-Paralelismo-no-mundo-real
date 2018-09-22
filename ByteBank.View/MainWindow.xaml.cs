@@ -158,9 +158,10 @@ namespace ByteBank.View
 
             var inicio = DateTime.Now;
 
-            var progress = new ByteBankProgress<string>(str => pgsProgresso.Value += 1);
+            var progressDOTNet = new Progress<string>(str => { pgsProgresso.Value += 1; });
+            //var progress = new ByteBankProgress<string>(str => pgsProgresso.Value += 1);
 
-            ConsolidarContas(r_Repositorio.GetContaClientes(), progress).ContinueWith(t =>
+            ConsolidarContas(r_Repositorio.GetContaClientes(), progressDOTNet).ContinueWith(t =>
             {
                 resultado = t.Result;
                 var fim = DateTime.Now;
@@ -191,9 +192,10 @@ namespace ByteBank.View
 
             var inicio = DateTime.Now;
 
-            var progress = new ByteBankProgress<string>(str => pgsProgresso.Value += 1);
+            var progressDOTNet = new Progress<string>(str => { pgsProgresso.Value += 1; });
+            //var progress = new ByteBankProgress<string>(str => pgsProgresso.Value += 1);
 
-            resultado = await ConsolidarContas(r_Repositorio.GetContaClientes(), progress);
+            resultado = await ConsolidarContas(r_Repositorio.GetContaClientes(), progressDOTNet);
 
             var fim = DateTime.Now;
             AtualizarView(resultado, fim - inicio);
