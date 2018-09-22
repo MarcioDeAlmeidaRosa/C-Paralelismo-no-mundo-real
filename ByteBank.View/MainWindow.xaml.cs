@@ -190,15 +190,9 @@ namespace ByteBank.View
             BtnProcessar3.Content = textoInicial;
         }
 
-        private Task<IList<string>> ConsolidarContas(IEnumerable<ContaCliente> contas)
+        private async Task<IList<string>> ConsolidarContas(IEnumerable<ContaCliente> contas)
         {
-            IList<string> resultado = new List<string>();
-            var tasks = contas.Select(
-                conta => Task.Factory.StartNew(() =>
-                {
-                    resultado.Add(r_Servico.ConsolidarMovimentacao(conta));
-                })).ToArray();
-            return Task.WhenAll(tasks).ContinueWith(t => { return resultado; });
+            return await Task.WhenAll(contas.Select(conta => Task.Factory.StartNew(() => r_Servico.ConsolidarMovimentacao(conta))));
         }
 
         private void AtualizarView(IList<String> result, TimeSpan elapsedTime)
