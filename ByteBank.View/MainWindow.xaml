@@ -4,7 +4,7 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         mc:Ignorable="d"
-        Title="ByteBank FrontOffice" Height="600" Width="525"
+        Title="ByteBank FrontOffice" Height="700" Width="525"
         WindowStartupLocation="CenterScreen">
     <DockPanel Margin="10">
         <!-- Logotipo -->
@@ -17,31 +17,48 @@
                    DockPanel.Dock="Bottom"
                    HorizontalAlignment="Right">
         </TextBlock>
-        <Button Name="BtnProcessar2"
+        <Grid DockPanel.Dock="Bottom" Height="200">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*"></RowDefinition>
+                <RowDefinition Height="*"></RowDefinition>
+                <RowDefinition Height="*"></RowDefinition>
+                <RowDefinition Height="*"></RowDefinition>
+                <RowDefinition Height="*"></RowDefinition>
+            </Grid.RowDefinitions>
+            <Button Name="BtnProcessar2"
                 Padding="10"
-                DockPanel.Dock="Bottom"
+                Grid.Row="0"
                 Click="BtnProcessar_Click_Bloqueando">
-            Botão que executada a rotina bloqueando a aplicação
-        </Button>
-        <Button Name="BtnProcessar"
+                Botão que executada a rotina bloqueando a aplicação
+            </Button>
+
+            <Button Name="BtnProcessar"
                 Padding="10"
-                DockPanel.Dock="Bottom"
+                    Grid.Row="1"
                 Click="BtnProcessar_Click_Forma_Complicada">
-            Botão que executada a rotina usando Threads com muitos "callbacks"
-        </Button>
-        <Button Name="BtnProcessar1"
+
+                Botão que executada a rotina usando Threads com muitos "callbacks"
+            </Button>
+            <Button Name="BtnProcessar1"
                 Padding="10"
-                DockPanel.Dock="Bottom"
+                    Grid.Row="2"
                 Click="BtnProcessar_Click_Forma_Um_Pouco_Mais_Simples">
-            Botão que executada a rotina usando Threads com 1 "callback"
-        </Button>
-        <Button Name="BtnProcessar3"
+                Botão que executada a rotina usando Threads com 1 "callback"
+            </Button>
+            <Button Name="BtnProcessar3"
                 Padding="10"
-                DockPanel.Dock="Bottom"
+                Grid.Row="3"
                 Click="BtnProcessar_Click_Com_AsyncAwait">
-            Botão que executada a rotina usando AsyncAwait
-        </Button>
-        
+                Botão que executada a rotina usando AsyncAwait
+            </Button>
+            <Button Name="BtnCancelar"
+                Padding="10"
+                Grid.Row="4"
+                Click="BtnProcessar_Click_Cancelar_Processamento">
+                Cancelar Processo
+            </Button>
+        </Grid>
+
         <!-- Resultado -->
         <TextBlock DockPanel.Dock="Top">Resultado:</TextBlock>
         <TextBlock DockPanel.Dock="Top"
@@ -52,9 +69,7 @@
                      Height="23"
                      DockPanel.Dock="Bottom"
                      >
-            
         </ProgressBar>
-        
         <ListView Name="LstResultados"
                   Background="Beige"
                   Margin="0 10">

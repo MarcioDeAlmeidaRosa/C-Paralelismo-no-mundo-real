@@ -21,6 +21,7 @@ namespace ByteBank.View
 
             r_Repositorio = new ContaClienteRepository();
             r_Servico = new ContaClienteService();
+            BtnCancelar.IsEnabled = false;
         }
 
         private void LimparView()
@@ -28,6 +29,7 @@ namespace ByteBank.View
             LstResultados.ItemsSource = null;
             TxtTempo.Text = null;
             pgsProgresso.Value = 0;
+            BtnCancelar.IsEnabled = true;
         }
 
         private void BtnProcessar_Click_Bloqueando(object sender, RoutedEventArgs e)
@@ -224,6 +226,12 @@ namespace ByteBank.View
 
             LstResultados.ItemsSource = result;
             TxtTempo.Text = mensagem;
+            BtnCancelar.IsEnabled = false;
+        }
+
+        private void BtnProcessar_Click_Cancelar_Processamento(object sender, RoutedEventArgs e)
+        {
+
         }
     }
 }
