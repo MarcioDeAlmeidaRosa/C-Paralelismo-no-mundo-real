@@ -42,11 +42,12 @@ namespace ByteBank.View
                     resultado.Add(r_Servico.ConsolidarMovimentacao(conta));
                 })).ToArray();
 
-            Task.WaitAll(contasTarefas);
+            Task.WhenAll(contasTarefas).ContinueWith((task) =>
+            {
+                var fim = DateTime.Now;
 
-            var fim = DateTime.Now;
-
-            AtualizarView(resultado, fim - inicio);
+                AtualizarView(resultado, fim - inicio);
+            });
         }
 
         private void AtualizarView(List<String> result, TimeSpan elapsedTime)
