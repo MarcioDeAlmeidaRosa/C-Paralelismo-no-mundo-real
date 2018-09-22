@@ -76,7 +76,34 @@ namespace ExemplosParalelos
 
         private static void ExecutarProcessamento()
         {
+            Console.Write("Executando --> ExecutarProcessamento");
+        }
 
+        private static void OutroExercicio()
+        {
+            try
+            {
+                System.Windows.Controls.Button btnCalcular = new System.Windows.Controls.Button();
+                btnCalcular.IsEnabled = false;
+
+                Task.Factory.StartNew(() =>
+                {
+                    //Apesar de capturarmos o contexto na linha 3, o contexto capturado é diferente do contexto da thread principal, então uma exceção do 
+                    //tipo InvalidOperationException será lançada na linha 5.
+                    //O contexto capturado na linha 3 é diferente do contexto da thread principal, uma vez que estamos capturando o contexto da Task criada na linha 1
+                    var context = TaskScheduler.FromCurrentSynchronizationContext();
+                    Task.Factory.StartNew(() => CalculaRaiz(100)).ContinueWith(t => btnCalcular.IsEnabled = true, context);
+                });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Exercício 03 SyncronizationContext --> ({ex.ToString()})");
+            }
+        }
+
+        private static void CalculaRaiz(int value)
+        {
+            Console.Write($"Executando --> CalculaRaiz - {value}");
         }
     }
 }
